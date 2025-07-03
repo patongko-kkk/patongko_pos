@@ -365,6 +365,7 @@
             margin-bottom: 1rem;
             flex-grow: 1; /* Allow table to grow */
             overflow-y: auto; /* Enable scrolling for order list */
+            max-height: 250px; /* Limit height for scrollable area */
         }
         .order-summary-sales-tab th, .order-summary-sales-tab td {
             padding: 0.5rem 0; /* Adjusted padding */
@@ -827,7 +828,28 @@
             }
             .product-selection-grid {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Even smaller for mobile */
-                max-height: 400px; /* Limit height on small screens */
+                max-height: 400px; /* Limit height on small screens to allow scrolling */
+                padding: 0.8rem; /* Reduced padding */
+            }
+            .product-item {
+                padding: 0.6rem; /* Reduced padding for product items */
+            }
+            .product-item h4 {
+                font-size: 0.9rem; /* Smaller font for menu name */
+            }
+            .product-item p {
+                font-size: 0.75rem; /* Smaller font for price */
+            }
+            .product-item .qty-controls button {
+                width: 24px; /* Even smaller buttons */
+                height: 24px;
+                font-size: 1rem;
+            }
+            .product-item .qty-display {
+                font-size: 0.9rem;
+            }
+            .order-summary-sales-tab table {
+                max-height: 200px; /* Adjust height for order summary table on small screens */
             }
             .data-table-container {
                 padding: 0.8rem;
@@ -864,7 +886,8 @@
 
     <div class="main-content">
         <div class="header-bar">
-            <h1 id="currentPageTitle"></h1> <div class="current-date-display">
+            <h1 id="currentPageTitle"></h1> 
+            <div class="current-date-display">
                 <i class="fas fa-calendar-alt"></i>
                 <span id="displayDate"></span>
             </div>
@@ -992,26 +1015,33 @@
     </div>
 
     <script>
-        // Initial product data, will be overwritten by localStorage if available
+        // Initial product data - UPDATED MENU
         let products = JSON.parse(localStorage.getItem('menuItems')) || [
             { category: "ปาท่องโก๋", items: [
-                { name: "ปาท่องโก๋ธรรมดา", price: 10 },
-                { name: "ปาท่องโก๋ไส้สังขยา", price: 15 },
-                { name: "ไส้กรอกไก่", price: 18 },
-                { name: "โก๋เกลี้ยว", price: 18 },
-                { name: "โก๋โฮลวีต", price: 18 }
+                { name: "โก๋ดั้งเดิม", price: 10 },
+                { name: "ไส้กรอกไก่", price: 20 },
+                { name: "โก๋เกลี้ยว", price: 10 },
+                { name: "โก๋โฮลวีต", price: 10 },
+                { name: "โก๋กล้วยหอม", price: 10 },
+                { name: "โก๋ซินนาม่อน", price: 10 },
+                { name: "โก๋ชาร์โคล", price: 10 },
+                { name: "โก๋รวม", price: 10 },
+                { name: "ทาร์ตไข่", price: 18 }
             ] },
             { category: "เครื่องดื่ม", items: [
                 { name: "น้ำเต้าหู้ ไม่ใส่เครื่อง", price: 7 },
-                { name: "ชาดำเย็น", price: 10 }
+                { name: "ชาดำเย็น", price: 10 },
+                { name: "เก๊กฮวย", price: 10 },
+                { name: "โอเลี้ยง", price: 10 },
+                { name: "กาแฟโบราณ", price: 15 },
+                { name: "ชาไทย", price: 15 }
             ] },
             { category: "ดิปปิ้ง", items: [
                 { name: "สังขยาใบเตย", price: 10 },
                 { name: "นมข้นหวาน", price: 10 },
                 { name: "แยมสตรอเบอร์รี่", price: 10 },
                 { name: "แยมบลูเบอร์รี่", price: 10 }
-            ] },
-            { category: "ขนม", items: [] } // Added "ขนม" category
+            ] }
         ];
 
         // Updated dailyReport structure to track payment methods
@@ -1034,7 +1064,9 @@
         // Predefined color palette for the pie chart
         const pieChartColors = [
             '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
-            '#858796', '#17a2b8', '#fd7e14', '#6f42c1', '#20c997'
+            '#858796', '#17a2b8', '#fd7e14', '#6f42c1', '#20c997',
+            '#6610f2', '#6c757d', '#ffc107', '#28a745', '#dc3545',
+            '#007bff', '#fd7e14', '#e83e8c', '#6f42c1', '#20c997'
         ];
 
         function getThaiDate(date) {
@@ -1422,7 +1454,8 @@
                 legendItem.innerHTML = `
                     <span class="legend-color-box" style="background-color: ${color};"></span>
                     <span class="legend-text">${item.name}</span>
-                    <span class="legend-value">${item.totalSold} ชิ้น</span> `;
+                    <span class="legend-value">${item.totalSold} ชิ้น</span> 
+                `;
                 legendContainer.appendChild(legendItem);
             });
 
@@ -1480,7 +1513,8 @@
         function saveMenu() {
             // Remove empty categories before saving
             // Filter out categories with no items, unless it's a new, empty category being added
-            products = products.filter(group => group.items.length > 0 || (document.getElementById("newCategoryInput").value.trim() !== '' && group.category === document.getElementById("newCategoryInput").value.trim()));
+            // Ensure no duplicate categories by checking only if it's a new category being added and not existing.
+            products = products.filter(group => group.items.length > 0 || (document.getElementById("newCategoryInput").value.trim() !== '' && group.category === document.getElementById("newCategoryInput").value.trim() && !products.some(p => p.category.toLowerCase() === document.getElementById("newCategoryInput").value.trim().toLowerCase() && p !== group)));
 
             localStorage.setItem('menuItems', JSON.stringify(products));
             
